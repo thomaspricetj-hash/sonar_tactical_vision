@@ -1,6 +1,8 @@
 Evaluation License Agreement (Maximum Restrictions)
 
-Version 1.0 — © Thomas Price
+Version 2.0 — © Thomas Price  
+
+Updated to include Cross‑Section Mapping, Multi‑Layer Fusion, Motion‑Vector Drift, Temporal Stability, and Reflex/Fusion Upgrades
 
 
 
@@ -37,6 +39,10 @@ Evaluator MAY NOT, under any circumstances:
 
 
 2.1 Copying \& Distribution
+
+Evaluator may NOT:
+
+
 
 Copy the Software, in whole or in part
 
@@ -81,6 +87,10 @@ Re‑implement the Software’s architecture, design, flow, or structure
 
 
 Use the Software as a template or reference for new systems
+
+
+
+Use the Software’s cross‑section mapping, multi‑layer fusion, motion‑vector drift, temporal stability, or hazard‑aware slicing concepts in any form
 
 
 
@@ -143,6 +153,26 @@ Extract heatmap logic
 
 
 Extract fusion logic
+
+
+
+Extract cross‑section mapping logic
+
+
+
+Extract motion‑vector drift logic
+
+
+
+Extract temporal stability logic
+
+
+
+Extract hazard‑aware spatial slicing logic
+
+
+
+Extract multi‑layer fusion logic
 
 
 
@@ -226,6 +256,10 @@ Use the Software to evaluate or benchmark AI systems
 
 
 
+Use the Software’s cross‑section engine, fusion engine, reflex engine, or multi‑layer heatmap system as conceptual input for any AI/ML model
+
+
+
 2.6 Competitive Restrictions
 
 Evaluator may NOT:
@@ -265,6 +299,26 @@ Build products using the same sonar pipeline
 
 
 Build products using the same fusion system
+
+
+
+Build products using the same cross‑section mapping engine
+
+
+
+Build products using the same motion‑vector drift system
+
+
+
+Build products using the same temporal stability system
+
+
+
+Build products using the same hazard‑aware slicing system
+
+
+
+Build products using the same multi‑layer fusion system
 
 
 
@@ -311,6 +365,22 @@ The semantic layer
 
 
 The runtime
+
+
+
+The cross‑section mapping engine
+
+
+
+The motion‑vector drift engine
+
+
+
+The temporal stability system
+
+
+
+The multi‑layer fusion system
 
 
 
@@ -377,6 +447,22 @@ The fusion logic
 
 
 The hazard logic
+
+
+
+The cross‑section logic
+
+
+
+The motion‑vector logic
+
+
+
+The temporal stability logic
+
+
+
+The multi‑layer fusion logic
 
 
 
@@ -500,6 +586,22 @@ Build products using the design
 
 
 
+Build products using the cross‑section engine
+
+
+
+Build products using the fusion engine
+
+
+
+Build products using the reflex engine
+
+
+
+Build products using the multi‑layer heatmap system
+
+
+
 Evaluator must purchase a commercial license from:
 
 
@@ -518,11 +620,7 @@ Commercial licensing is the only legal path forward.
 
 7\. IP Purchase Option
 
-Evaluator may request to purchase the entire IP.
-
-
-
-This includes:
+Evaluator may request to purchase the entire IP, including:
 
 
 

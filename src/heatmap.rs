@@ -1,4 +1,56 @@
 use serde::{Serialize, Deserialize};
+use crate::hazard_map::HazardMap;
+
+/// Full cross‑section mapping results: spatial, temporal, motion, hazard, multi‑layer.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FullCrossSectionSlices {
+    // Core metrics
+    pub entropy: f32,
+    pub volatility: f32,
+    pub drift: f32,
+
+    // Motion‑vector drift
+    pub motion_dx: f32,
+    pub motion_dy: f32,
+
+    // Temporal stability
+    pub temporal_stability: f32,
+
+    // Spatial slices
+    pub front_intensity: f32,
+    pub back_intensity: f32,
+    pub left_intensity: f32,
+    pub right_intensity: f32,
+
+    // Quadrants
+    pub q1_intensity: f32,
+    pub q2_intensity: f32,
+    pub q3_intensity: f32,
+    pub q4_intensity: f32,
+
+    // Radial rings
+    pub inner_ring: f32,
+    pub mid_ring: f32,
+    pub outer_ring: f32,
+
+    // Hazard slices
+    pub hazard_front: f32,
+    pub hazard_back: f32,
+    pub hazard_left: f32,
+    pub hazard_right: f32,
+
+    pub hazard_q1: f32,
+    pub hazard_q2: f32,
+    pub hazard_q3: f32,
+    pub hazard_q4: f32,
+
+    pub hazard_inner: f32,
+    pub hazard_mid: f32,
+    pub hazard_outer: f32,
+
+    // Fused precision score
+    pub fused_precision: f32,
+}
 
 /// A single heatmap layer represented as a dot‑matrix grid.
 /// Each cell stores a normalized risk value (0.0–1.0).
@@ -84,6 +136,288 @@ impl HeatLayer {
             }
         }
     }
+
+    /// Compute full cross‑section slices (multi‑layer + hazard‑aware).
+    pub fn compute_full_cross_sections(
+        &self,
+        motion: Option<&MotionVectorLayer>,
+        prev: Option<&[f32]>,
+        hazard: Option<&HazardMap>,
+    ) -> FullCrossSectionSlices {
+        let w = self.width;
+        let h = self.height;
+        let fused = &self.cells;
+
+        // --- entropy ---
+        let entropy = fused.iter().map(|v| v.abs()).sum::<f32>() / fused.len().max(1) as f32;
+
+        // --- volatility ---
+        let mut volatility = 0.0;
+        for win in fused.windows(2) {
+            volatility += (win[1] - win[0]).abs();
+        }
+        volatility /= fused.len().max(1) as f32;
+
+        // --- drift ---
+        let drift = fused
+            .iter()
+            .enumerate()
+            .map(|(i, v)| (i as f32 * 0.01) * v)
+            .sum::<f32>();
+
+        // --- motion‑vector drift ---
+        let (motion_dx, motion_dy) = if let Some(m) = motion {
+            let mut dx_sum = 0.0;
+            let mut dy_sum = 0.0;
+            let mut count = 0;
+
+            for y in 0..h {
+                for x in 0..w {
+                    let (dx, dy) = m.get(x, y);
+                    dx_sum += dx;
+                    dy_sum += dy;
+                    count += 1;
+                }
+            }
+
+            if count == 0 {
+                (0.0, 0.0)
+            } else {
+                (dx_sum / count as f32, dy_sum / count as f32)
+            }
+        } else {
+            (0.0, 0.0)
+        };
+
+        // --- temporal stability ---
+        let temporal_stability = if let Some(prev_cells) = prev {
+            if prev_cells.len() == fused.len() {
+                let diff = fused
+                    .iter()
+                    .zip(prev_cells.iter())
+                    .map(|(a, b)| (a - b).abs())
+                    .sum::<f32>()
+                    / fused.len() as f32;
+                1.0 / (1.0 + diff)
+            } else {
+                1.0
+            }
+        } else {
+            1.0
+        };
+
+        // --- spatial slices ---
+        let mut front_sum = 0.0;
+        let mut back_sum = 0.0;
+        let mut left_sum = 0.0;
+        let mut right_sum = 0.0;
+
+        let mut front_count = 0;
+        let mut back_count = 0;
+        let mut left_count = 0;
+        let mut right_count = 0;
+
+        // Quadrants
+        let mut q1 = 0.0;
+        let mut q2 = 0.0;
+        let mut q3 = 0.0;
+        let mut q4 = 0.0;
+
+        let mut q1c = 0;
+        let mut q2c = 0;
+        let mut q3c = 0;
+        let mut q4c = 0;
+
+        // Radial rings
+        let cx = w as f32 / 2.0;
+        let cy = h as f32 / 2.0;
+        let max_r = (cx * cx + cy * cy).sqrt().max(1.0);
+
+        let mut inner_sum = 0.0;
+        let mut mid_sum = 0.0;
+        let mut outer_sum = 0.0;
+
+        let mut inner_count = 0;
+        let mut mid_count = 0;
+        let mut outer_count = 0;
+
+        // Hazard slices
+        let mut hz_front = 0.0;
+        let mut hz_back = 0.0;
+        let mut hz_left = 0.0;
+        let mut hz_right = 0.0;
+
+        let mut hz_q1 = 0.0;
+        let mut hz_q2 = 0.0;
+        let mut hz_q3 = 0.0;
+        let mut hz_q4 = 0.0;
+
+        let mut hz_inner = 0.0;
+        let mut hz_mid = 0.0;
+        let mut hz_outer = 0.0;
+
+        let mut hz_front_c = 0;
+        let mut hz_back_c = 0;
+        let mut hz_left_c = 0;
+        let mut hz_right_c = 0;
+
+        let mut hz_q1c = 0;
+        let mut hz_q2c = 0;
+        let mut hz_q3c = 0;
+        let mut hz_q4c = 0;
+
+        let mut hz_inner_c = 0;
+        let mut hz_mid_c = 0;
+        let mut hz_outer_c = 0;
+
+        for y in 0..h {
+            for x in 0..w {
+                let idx = y * w + x;
+                let v = fused[idx];
+
+                // front/back
+                if y < h / 2 {
+                    front_sum += v;
+                    front_count += 1;
+                } else {
+                    back_sum += v;
+                    back_count += 1;
+                }
+
+                // left/right
+                if x < w / 2 {
+                    left_sum += v;
+                    left_count += 1;
+                } else {
+                    right_sum += v;
+                    right_count += 1;
+                }
+
+                // quadrants
+                if x < w / 2 && y < h / 2 {
+                    q1 += v;
+                    q1c += 1;
+                } else if x >= w / 2 && y < h / 2 {
+                    q2 += v;
+                    q2c += 1;
+                } else if x < w / 2 && y >= h / 2 {
+                    q3 += v;
+                    q3c += 1;
+                } else {
+                    q4 += v;
+                    q4c += 1;
+                }
+
+                // radial rings
+                let dx = x as f32 - cx;
+                let dy = y as f32 - cy;
+                let r = (dx * dx + dy * dy).sqrt() / max_r;
+
+                if r < 0.33 {
+                    inner_sum += v;
+                    inner_count += 1;
+                } else if r < 0.66 {
+                    mid_sum += v;
+                    mid_count += 1;
+                } else {
+                    outer_sum += v;
+                    outer_count += 1;
+                }
+
+                // hazard slices
+                if let Some(hz) = hazard {
+                    let hv = hz.get_intensity(x, y);
+
+                    if y < h / 2 {
+                        hz_front += hv;
+                        hz_front_c += 1;
+                    } else {
+                        hz_back += hv;
+                        hz_back_c += 1;
+                    }
+
+                    if x < w / 2 {
+                        hz_left += hv;
+                        hz_left_c += 1;
+                    } else {
+                        hz_right += hv;
+                        hz_right_c += 1;
+                    }
+
+                    if x < w / 2 && y < h / 2 {
+                        hz_q1 += hv;
+                        hz_q1c += 1;
+                    } else if x >= w / 2 && y < h / 2 {
+                        hz_q2 += hv;
+                        hz_q2c += 1;
+                    } else if x < w / 2 && y >= h / 2 {
+                        hz_q3 += hv;
+                        hz_q3c += 1;
+                    } else {
+                        hz_q4 += hv;
+                        hz_q4c += 1;
+                    }
+
+                    if r < 0.33 {
+                        hz_inner += hv;
+                        hz_inner_c += 1;
+                    } else if r < 0.66 {
+                        hz_mid += hv;
+                        hz_mid_c += 1;
+                    } else {
+                        hz_outer += hv;
+                        hz_outer_c += 1;
+                    }
+                }
+            }
+        }
+
+        // fused precision score (adaptive: penalize high entropy/volatility/hazard)
+        let fused_precision =
+            (1.0 / (1.0 + entropy)) *
+            (1.0 / (1.0 + volatility)) *
+            temporal_stability *
+            (1.0 - hz_outer.min(1.0));
+
+        FullCrossSectionSlices {
+            entropy,
+            volatility,
+            drift,
+            motion_dx,
+            motion_dy,
+            temporal_stability,
+
+            front_intensity: front_sum / front_count.max(1) as f32,
+            back_intensity: back_sum / back_count.max(1) as f32,
+            left_intensity: left_sum / left_count.max(1) as f32,
+            right_intensity: right_sum / right_count.max(1) as f32,
+
+            q1_intensity: q1 / q1c.max(1) as f32,
+            q2_intensity: q2 / q2c.max(1) as f32,
+            q3_intensity: q3 / q3c.max(1) as f32,
+            q4_intensity: q4 / q4c.max(1) as f32,
+
+            inner_ring: inner_sum / inner_count.max(1) as f32,
+            mid_ring: mid_sum / mid_count.max(1) as f32,
+            outer_ring: outer_sum / outer_count.max(1) as f32,
+
+            hazard_front: hz_front / hz_front_c.max(1) as f32,
+            hazard_back: hz_back / hz_back_c.max(1) as f32,
+            hazard_left: hz_left / hz_left_c.max(1) as f32,
+            hazard_right: hz_right / hz_right_c.max(1) as f32,
+
+            hazard_q1: hz_q1 / hz_q1c.max(1) as f32,
+            hazard_q2: hz_q2 / hz_q2c.max(1) as f32,
+            hazard_q3: hz_q3 / hz_q3c.max(1) as f32,
+            hazard_q4: hz_q4 / hz_q4c.max(1) as f32,
+
+            hazard_inner: hz_inner / hz_inner_c.max(1) as f32,
+            hazard_mid: hz_mid / hz_mid_c.max(1) as f32,
+            hazard_outer: hz_outer / hz_outer_c.max(1) as f32,
+
+            fused_precision,
+        }
+    }
 }
 
 /// Motion vector layer: stores directional flow of risk.
@@ -160,6 +494,28 @@ impl MotionVectorLayer {
         self.dx = new_dx;
         self.dy = new_dy;
     }
+
+    /// Update motion vectors from a heat layer (gradient field).
+    pub fn update_from_heat(&mut self, current: &HeatLayer) {
+        let w = current.width;
+        let h = current.height;
+
+        for y in 0..h {
+            for x in 0..w {
+                let center = current.get(x, y);
+
+                let left = if x > 0 { current.get(x - 1, y) } else { center };
+                let right = if x < w - 1 { current.get(x + 1, y) } else { center };
+                let dx = right - left;
+
+                let up = if y > 0 { current.get(x, y - 1) } else { center };
+                let down = if y < h - 1 { current.get(x, y + 1) } else { center };
+                let dy = down - up;
+
+                self.set(x, y, dx, dy);
+            }
+        }
+    }
 }
 
 /// Multi‑layer heatmap stack.
@@ -231,26 +587,7 @@ impl MultiLayerHeatmap {
 
     /// Update motion vector layer by computing directional risk flow.
     pub fn update_motion_vectors(&mut self, current: &HeatLayer) {
-        let w = current.width;
-        let h = current.height;
-
-        for y in 0..h {
-            for x in 0..w {
-                let center = current.get(x, y);
-
-                // Compute gradient in X
-                let left = if x > 0 { current.get(x - 1, y) } else { center };
-                let right = if x < w - 1 { current.get(x + 1, y) } else { center };
-                let dx = right - left;
-
-                // Compute gradient in Y
-                let up = if y > 0 { current.get(x, y - 1) } else { center };
-                let down = if y < h - 1 { current.get(x, y + 1) } else { center };
-                let dy = down - up;
-
-                self.motion_layer.set(x, y, dx, dy);
-            }
-        }
+        self.motion_layer.update_from_heat(current);
     }
 
     /// Fuse all layers into a single composite heatmap.
@@ -295,6 +632,16 @@ impl MultiLayerHeatmap {
         }
 
         fused
+    }
+
+    /// Compute full cross‑sections from fused heatmap + motion + hazard.
+    pub fn full_cross_sections(
+        &self,
+        prev_fused: Option<&[f32]>,
+        hazard: Option<&HazardMap>,
+    ) -> FullCrossSectionSlices {
+        let fused = self.fuse();
+        fused.compute_full_cross_sections(Some(&self.motion_layer), prev_fused, hazard)
     }
 }
 

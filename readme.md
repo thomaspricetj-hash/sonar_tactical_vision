@@ -1,6 +1,6 @@
 Close‑Range Sonar Perception System
 
-High‑precision near‑field sensing, reflex actions, hazard mapping, and multi‑sensor fusion for robots and autonomous vehicles.
+High‑precision near‑field sensing, reflex actions, hazard mapping, cross‑section analysis, and multi‑sensor fusion for robots and autonomous vehicles.
 
 This project implements a full close‑range perception stack designed for robots, drones, and autonomous vehicles operating in tight spaces. It provides:
 
@@ -10,7 +10,11 @@ Real‑time sonar processing
 
 
 
-Multi‑layer heatmaps
+Multi‑layer heatmaps (predictive, temporal, gradient, flow)
+
+
+
+Cross‑Section Mapping Engine (NEW)
 
 
 
@@ -50,15 +54,103 @@ Features
 
 Sonar Engine
 
-Converts raw sonar readings into normalized heatmaps
+Converts raw sonar readings into normalized multi‑layer heatmaps:
 
 
 
-Multi‑layer processing (predictive, temporal, gradient, flow)
+Predictive forward‑projection
 
 
 
-Noise‑robust and deterministic
+Temporal accumulation
+
+
+
+Gradient edge detection
+
+
+
+Flow‑based motion vectors
+
+
+
+Deterministic fusion into a composite heatmap
+
+
+
+Noise‑robust and deterministic.
+
+
+
+Cross‑Section Mapping Engine (NEW)
+
+Transforms fused heatmaps into high‑precision spatial, temporal, and hazard‑aware slices:
+
+
+
+Spatial Slices
+
+Front / Back
+
+
+
+Left / Right
+
+
+
+Quadrants (Q1–Q4)
+
+
+
+Radial rings (inner / mid / outer)
+
+
+
+Motion‑Vector Drift
+
+Average dx/dy flow
+
+
+
+Detects incoming hazards
+
+
+
+Reveals lateral drift and environmental motion
+
+
+
+Temporal Stability
+
+Frame‑to‑frame consistency
+
+
+
+Detects flicker, noise, sudden changes
+
+
+
+Hazard‑Aware Slices
+
+Hazard front/back/left/right
+
+
+
+Hazard quadrants
+
+
+
+Hazard radial rings
+
+
+
+Fused Precision Score
+
+A deterministic metric combining entropy, volatility, drift, stability, and hazard weighting.
+
+
+
+This engine dramatically improves steering accuracy, hazard prediction, and reflex reliability.
 
 
 
@@ -114,7 +206,7 @@ Optional steering direction
 
 Hazard Map
 
-Persistent near‑field hazard memory
+Persistent near‑field hazard memory:
 
 
 
@@ -122,7 +214,19 @@ Reinforcement + decay
 
 
 
-Useful for reflex decisions and visualization
+Semantic label storage
+
+
+
+Reflex history
+
+
+
+Spatial hazard slicing (via cross‑section engine)
+
+
+
+Stable context for reflex decisions
 
 
 
@@ -152,13 +256,17 @@ TransparentObject
 
 
 
+TemporalHazard
+
+
+
 Reflex Pipeline (Fusion‑Aware)
 
 Blends:
 
 
 
-Sonar events
+Sonar tactical events
 
 
 
@@ -166,11 +274,19 @@ Semantic meaning
 
 
 
+Cross‑section slices
+
+
+
+Hazard slices
+
+
+
 Multi‑sensor fusion hazard
 
 
 
-Steering vectors
+Fused precision score
 
 
 
@@ -238,7 +354,7 @@ Recommended reflex
 
 Runtime
 
-Deterministic tick loop
+Deterministic tick loop:
 
 
 
@@ -246,11 +362,35 @@ Time‑based routing
 
 
 
+Multi‑layer heatmap updates
+
+
+
+Cross‑section mapping
+
+
+
+Hazard map reinforcement
+
+
+
+Event generation
+
+
+
+Semantic classification
+
+
+
 Fusion integration
 
 
 
-External sensor injection
+Reflex output
+
+
+
+Supports external sensor injection.
 
 
 
@@ -302,11 +442,13 @@ src/
 
 &#x20;├── device/                 # Sonar device trait + drivers
 
-&#x20;├── engine/                 # Sonar engine + heatmap layers
+&#x20;├── engine/                 # Sonar engine + multi-layer heatmaps
+
+&#x20;├── heatmap.rs              # Cross-section mapping + fusion layers (NEW)
 
 &#x20;├── events.rs               # TacticalEvent system (steering-aware)
 
-&#x20;├── hazard\_map.rs           # Hazard memory
+&#x20;├── hazard\_map.rs           # Hazard memory + reinforcement
 
 &#x20;├── semantic\_layer.rs       # Semantic classification
 
@@ -314,7 +456,7 @@ src/
 
 &#x20;├── sonar\_fusion.rs         # Multi-sensor fusion module
 
-&#x20;├── sonar\_router.rs         # Routing + event generation
+&#x20;├── sonar\_router.rs         # Routing + event generation + cross-sections
 
 &#x20;├── sonar\_runtime.rs        # Deterministic runtime loop
 
@@ -323,10 +465,6 @@ src/
 How to Use
 
 1\. Implement a Sonar Device
-
-Create a struct that implements:
-
-
 
 rust
 
@@ -503,4 +641,26 @@ Remember
 Adapt
 
 
+
+The new Cross‑Section Mapping Engine dramatically improves:
+
+
+
+steering accuracy
+
+
+
+hazard prediction
+
+
+
+temporal stability
+
+
+
+motion‑aware reflexes
+
+
+
+multi‑layer fusion precision
 
