@@ -1,10 +1,8 @@
 Evaluation License Agreement (Maximum Restrictions)
 
-Version 2.0 — © Thomas Price  
+Version 2.1 — © Thomas Price
 
-Updated to include Cross‑Section Mapping, Multi‑Layer Fusion, Motion‑Vector Drift, Temporal Stability, and Reflex/Fusion Upgrades
-
-
+Updated to include Cross‑Section Mapping, Multi‑Layer Fusion, Motion‑Vector Drift, Temporal Stability, Reflex/Fusion Upgrades, and the Fractal Precision Engine (NEW)
 
 1\. Grant of Rights (Extremely Limited)
 
@@ -90,7 +88,47 @@ Use the Software as a template or reference for new systems
 
 
 
-Use the Software’s cross‑section mapping, multi‑layer fusion, motion‑vector drift, temporal stability, or hazard‑aware slicing concepts in any form
+Evaluator may NOT use or replicate ANY of the following protected systems:
+
+
+
+Cross‑Section Mapping Engine
+
+
+
+Multi‑Layer Fusion Engine
+
+
+
+Motion‑Vector Drift Engine
+
+
+
+Temporal Stability System
+
+
+
+Hazard‑Aware Spatial Slicing System
+
+
+
+Fractal Precision Engine (NEW)
+
+
+
+Fractal Multi‑Scale Complexity Scoring (NEW)
+
+
+
+Fractal‑Weighted Fused Precision Logic (NEW)
+
+
+
+Fractal‑Enhanced Hazard Prediction (NEW)
+
+
+
+Fractal‑Aware Reflex Scaling (NEW)
 
 
 
@@ -156,23 +194,47 @@ Extract fusion logic
 
 
 
-Extract cross‑section mapping logic
+Evaluator may NOT analyze or attempt to derive:
 
 
 
-Extract motion‑vector drift logic
+Cross‑Section Mapping Logic
 
 
 
-Extract temporal stability logic
+Motion‑Vector Drift Logic
 
 
 
-Extract hazard‑aware spatial slicing logic
+Temporal Stability Logic
 
 
 
-Extract multi‑layer fusion logic
+Hazard‑Aware Spatial Slicing Logic
+
+
+
+Multi‑Layer Fusion Logic
+
+
+
+Fractal Precision Logic (NEW)
+
+
+
+Fractal Multi‑Scale Complexity Logic (NEW)
+
+
+
+Fractal‑Weighted Fused Precision Logic (NEW)
+
+
+
+Fractal‑Enhanced Hazard Prediction Logic (NEW)
+
+
+
+Fractal‑Aware Reflex Scaling Logic (NEW)
 
 
 
@@ -256,7 +318,35 @@ Use the Software to evaluate or benchmark AI systems
 
 
 
-Use the Software’s cross‑section engine, fusion engine, reflex engine, or multi‑layer heatmap system as conceptual input for any AI/ML model
+Evaluator may NOT use or replicate:
+
+
+
+Cross‑Section Engine
+
+
+
+Fusion Engine
+
+
+
+Reflex Engine
+
+
+
+Multi‑Layer Heatmap System
+
+
+
+Fractal Precision Engine (NEW)
+
+
+
+Fractal Multi‑Scale Complexity Scoring (NEW)
+
+
+
+Fractal‑Weighted Fused Precision Logic (NEW)
 
 
 
@@ -302,23 +392,47 @@ Build products using the same fusion system
 
 
 
-Build products using the same cross‑section mapping engine
+Evaluator may NOT replicate:
 
 
 
-Build products using the same motion‑vector drift system
+Cross‑Section Mapping Engine
 
 
 
-Build products using the same temporal stability system
+Motion‑Vector Drift System
 
 
 
-Build products using the same hazard‑aware slicing system
+Temporal Stability System
 
 
 
-Build products using the same multi‑layer fusion system
+Hazard‑Aware Slicing System
+
+
+
+Multi‑Layer Fusion System
+
+
+
+Fractal Precision Engine (NEW)
+
+
+
+Fractal Multi‑Scale Complexity Scoring (NEW)
+
+
+
+Fractal‑Weighted Fused Precision Logic (NEW)
+
+
+
+Fractal‑Enhanced Hazard Prediction (NEW)
+
+
+
+Fractal‑Aware Reflex Scaling (NEW)
 
 
 
@@ -381,6 +495,26 @@ The temporal stability system
 
 
 The multi‑layer fusion system
+
+
+
+The fractal precision engine (NEW)
+
+
+
+The fractal multi‑scale complexity system (NEW)
+
+
+
+The fractal‑weighted fused precision system (NEW)
+
+
+
+The fractal‑enhanced hazard prediction system (NEW)
+
+
+
+The fractal‑aware reflex scaling system (NEW)
 
 
 
@@ -463,6 +597,26 @@ The temporal stability logic
 
 
 The multi‑layer fusion logic
+
+
+
+The fractal precision logic (NEW)
+
+
+
+The fractal multi‑scale complexity logic (NEW)
+
+
+
+The fractal‑weighted fused precision logic (NEW)
+
+
+
+The fractal‑enhanced hazard prediction logic (NEW)
+
+
+
+The fractal‑aware reflex scaling logic (NEW)
 
 
 
@@ -602,11 +756,15 @@ Build products using the multi‑layer heatmap system
 
 
 
+Build products using the fractal precision engine (NEW)
+
+
+
 Evaluator must purchase a commercial license from:
 
 
 
-Thomas Price  
+Thomas Price
 
 Crestwood, KY
 

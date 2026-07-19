@@ -48,6 +48,9 @@ pub struct FullCrossSectionSlices {
     pub hazard_mid: f32,
     pub hazard_outer: f32,
 
+    // NEW: fractal multi‑scale complexity score
+    pub fractal_precision: f32,
+
     // Fused precision score
     pub fused_precision: f32,
 }
@@ -135,6 +138,58 @@ impl HeatLayer {
                 self.cells[idx] = v.clamp(0.0, 1.0);
             }
         }
+    }
+
+    /// NEW: Fractal multi‑scale complexity analysis.
+    fn compute_fractal_precision(&self) -> f32 {
+        let w = self.width;
+        let h = self.height;
+
+        // Multi‑scale windows: 1×1, 3×3, 5×5
+        let scales = [1, 3, 5];
+        let mut total_complexity = 0.0;
+        let mut samples = 0;
+
+        for &s in &scales {
+            let radius = s / 2;
+
+            if radius == 0 {
+                // 1×1 scale: just use raw cell variance across the map
+                let mean = self.cells.iter().sum::<f32>() / self.cells.len().max(1) as f32;
+                let var = self.cells.iter().map(|v| (v - mean).abs()).sum::<f32>()
+                    / self.cells.len().max(1) as f32;
+                total_complexity += var;
+                samples += 1;
+                continue;
+            }
+
+            for y in radius..(h - radius) {
+                for x in radius..(w - radius) {
+                    let mut local_vals = Vec::new();
+
+                    for dy in -(radius as isize)..=(radius as isize) {
+                        for dx in -(radius as isize)..=(radius as isize) {
+                            let nx = (x as isize + dx) as usize;
+                            let ny = (y as isize + dy) as usize;
+                            local_vals.push(self.get(nx, ny));
+                        }
+                    }
+
+                    let mean = local_vals.iter().sum::<f32>() / local_vals.len() as f32;
+                    let var = local_vals.iter().map(|v| (v - mean).abs()).sum::<f32>()
+                        / local_vals.len() as f32;
+
+                    total_complexity += var;
+                    samples += 1;
+                }
+            }
+        }
+
+        if samples == 0 {
+            return 0.0;
+        }
+
+        (total_complexity / samples as f32).clamp(0.0, 1.0)
     }
 
     /// Compute full cross‑section slices (multi‑layer + hazard‑aware).
@@ -372,12 +427,16 @@ impl HeatLayer {
             }
         }
 
+        // NEW: fractal multi‑scale complexity
+        let fractal_precision = self.compute_fractal_precision();
+
         // fused precision score (adaptive: penalize high entropy/volatility/hazard)
         let fused_precision =
             (1.0 / (1.0 + entropy)) *
             (1.0 / (1.0 + volatility)) *
             temporal_stability *
-            (1.0 - hz_outer.min(1.0));
+            (1.0 - hz_outer.min(1.0)) *
+            (0.5 + fractal_precision * 0.5);
 
         FullCrossSectionSlices {
             entropy,
@@ -415,6 +474,7 @@ impl HeatLayer {
             hazard_mid: hz_mid / hz_mid_c.max(1) as f32,
             hazard_outer: hz_outer / hz_outer_c.max(1) as f32,
 
+            fractal_precision,
             fused_precision,
         }
     }
