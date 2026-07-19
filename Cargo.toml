@@ -1,0 +1,23 @@
+[package]
+name = "sonar_tactical_vision"
+version = "0.1.0"
+edition = "2021"
+authors = ["Thomas Price"]
+license = "MIT"
+description = "Synthetic sonar-tactical vision engine for close-range perception, collision avoidance, and tactile-style sensing."
+repository = "https://github.com/thomaspricetj-hash/sonar_tactical_vision"
+
+[dependencies]
+# For math utilities (angles, vectors, normalization)
+nalgebra = "0.32"
+
+# For optional async sonar drivers (hardware or simulation)
+tokio = { version = "1.37", features = ["full"] }
+
+# For logging/debugging
+log = "0.4"
+env_logger = "0.11"
+
+# Optional: serialization for tactical field snapshots
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
