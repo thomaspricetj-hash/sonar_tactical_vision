@@ -23,6 +23,18 @@ pub struct SonarSnapshot {
 
     /// Timestamp (seconds since start)
     pub timestamp: f64,
+
+    /// MAX‑tier: fused precision score
+    pub fused_precision: f32,
+
+    /// MAX‑tier: fractal complexity score
+    pub fractal_complexity: f32,
+
+    /// MAX‑tier: temporal stability score
+    pub temporal_stability: f32,
+
+    /// MAX‑tier: roundabout routing score
+    pub roundabout_score: f32,
 }
 
 /// Standalone deep store for sonar snapshots.
@@ -31,6 +43,9 @@ pub struct SonarSnapshot {
 pub struct SonarDeepStore {
     snapshots: Vec<SonarSnapshot>,
     extractor: SonarSignatureExtractor,
+
+    /// Optional max snapshot count (auto‑trim)
+    max_snapshots: Option<usize>,
 }
 
 impl SonarDeepStore {
@@ -38,7 +53,14 @@ impl SonarDeepStore {
         Self {
             snapshots: Vec::new(),
             extractor: SonarSignatureExtractor::new(),
+            max_snapshots: None,
         }
+    }
+
+    /// Set a maximum number of stored snapshots (oldest are trimmed).
+    pub fn with_limit(mut self, limit: usize) -> Self {
+        self.max_snapshots = Some(limit);
+        self
     }
 
     /// Store a snapshot of the current sonar state.
@@ -50,7 +72,8 @@ impl SonarDeepStore {
         let predictive = heatmap.predictive_layer.clone();
 
         // Convert motion vectors into magnitude heatmap for storage
-        let mut motion_mag = HeatLayer::new(heatmap.motion_layer.width, heatmap.motion_layer.height);
+        let mut motion_mag =
+            HeatLayer::new(heatmap.motion_layer.width, heatmap.motion_layer.height);
         for y in 0..heatmap.motion_layer.height {
             for x in 0..heatmap.motion_layer.width {
                 let (vx, vy) = heatmap.motion_layer.get(x, y);
@@ -61,6 +84,10 @@ impl SonarDeepStore {
 
         let signature = self.extractor.extract(&fused);
 
+        // Local MAX‑tier metrics derived from fused layer only
+        let (fused_precision, fractal_complexity, temporal_stability, roundabout_score) =
+            Self::compute_metrics(&fused);
+
         let snapshot = SonarSnapshot {
             fused,
             temporal,
@@ -68,9 +95,67 @@ impl SonarDeepStore {
             motion_mag,
             signature,
             timestamp,
+            fused_precision,
+            fractal_complexity,
+            temporal_stability,
+            roundabout_score,
         };
 
         self.snapshots.push(snapshot);
+
+        // Auto‑trim oldest snapshots if limit is set
+        if let Some(limit) = self.max_snapshots {
+            if self.snapshots.len() > limit {
+                let excess = self.snapshots.len() - limit;
+                self.snapshots.drain(0..excess);
+            }
+        }
+    }
+
+    /// Internal helper: compute precision/complexity/stability/roundabout metrics
+    fn compute_metrics(layer: &HeatLayer) -> (f32, f32, f32, f32) {
+        let cells = &layer.cells;
+        if cells.is_empty() {
+            return (0.0, 0.0, 1.0, 0.0);
+        }
+
+        let len = cells.len() as f32;
+
+        // Entropy‑like slice
+        let entropy = cells.iter().map(|v| v.abs()).sum::<f32>() / len;
+
+        // Volatility slice
+        let mut volatility = 0.0;
+        for w in cells.windows(2) {
+            volatility += (w[1] - w[0]).abs();
+        }
+        volatility /= len;
+
+        // Simple hazard proxy: average intensity
+        let hazard = cells.iter().map(|c| c.clamp(0.0, 1.0)).sum::<f32>() / len;
+
+        // Fused precision: low entropy, low volatility, low hazard
+        let fused_precision = (1.0 / (1.0 + entropy))
+            * (1.0 / (1.0 + volatility))
+            * (1.0 - hazard.clamp(0.0, 1.0));
+
+        // Fractal complexity: interaction of entropy and volatility
+        let fractal_complexity = (entropy * volatility).clamp(0.0, 1.0);
+
+        // Temporal stability: DeepStore has no previous frame context → assume stable
+        let temporal_stability = 1.0;
+
+        // Roundabout score: prefer high precision, low hazard, moderate complexity
+        let roundabout_score = fused_precision
+            * (1.0 - hazard.clamp(0.0, 1.0))
+            * (0.5 + 0.5 * (1.0 - fractal_complexity));
+
+        (
+            fused_precision.clamp(0.0, 1.0),
+            fractal_complexity,
+            temporal_stability,
+            roundabout_score.clamp(0.0, 1.0),
+        )
     }
 
     /// Retrieve the most recent snapshot.
@@ -99,6 +184,22 @@ impl SonarDeepStore {
             .collect()
     }
 
+    /// Retrieve snapshots with high fused precision.
+    pub fn high_precision(&self, threshold: f32) -> Vec<&SonarSnapshot> {
+        self.snapshots
+            .iter()
+            .filter(|snap| snap.fused_precision >= threshold)
+            .collect()
+    }
+
+    /// Retrieve snapshots with strong roundabout routing score.
+    pub fn strong_roundabout(&self, threshold: f32) -> Vec<&SonarSnapshot> {
+        self.snapshots
+            .iter()
+            .filter(|snap| snap.roundabout_score >= threshold)
+            .collect()
+    }
+
     /// Count stored snapshots.
     pub fn len(&self) -> usize {
         self.snapshots.len()
@@ -108,3 +209,4 @@ impl SonarDeepStore {
         self.snapshots.is_empty()
     }
 }
+

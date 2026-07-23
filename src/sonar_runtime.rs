@@ -12,7 +12,10 @@ pub struct SonarRuntimeState {
 }
 
 /// A standalone runtime loop for the sonar system.
-/// Now upgraded with multi‑sensor fusion.
+/// Upgraded with:
+/// - multi‑sensor fusion
+/// - stable tick timing
+/// - explicit accessors for fusion + router
 pub struct SonarRuntime<D: SonarDevice> {
     router: SonarRouter<D>,
     fusion: SonarFusion,
@@ -59,10 +62,9 @@ impl<D: SonarDevice> SonarRuntime<D> {
         self.state.last_output = Some(output.clone());
 
         // --- 2. Multi‑sensor fusion ---
-        let fused = self.fusion.fuse(
-            self.router.hazard_map(),
-            &self.external_sensors,
-        );
+        let fused = self
+            .fusion
+            .fuse(self.router.hazard_map(), &self.external_sensors);
         self.state.last_fusion = Some(fused);
     }
 
@@ -103,3 +105,4 @@ impl<D: SonarDevice> SonarRuntime<D> {
         &mut self.router
     }
 }
+

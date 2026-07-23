@@ -27,15 +27,24 @@ pub struct FusionState {
 /// Multi‑sensor fusion over:
 /// - sonar hazard map
 /// - external sensors (vision, LiDAR, radar)
+/// - distance‑aware shaping
+/// - roundabout‑tier reflex blending
 pub struct SonarFusion {
     /// Weight of sonar vs other sensors
     sonar_weight: f32,
     vision_weight: f32,
     lidar_weight: f32,
     radar_weight: f32,
+
     /// Thresholds for reflex decisions
     emergency_threshold: f32,
     slow_threshold: f32,
+
+    /// NEW: distance shaping factor
+    distance_weight: f32,
+
+    /// NEW: roundabout reflex blending
+    roundabout_blend: f32,
 }
 
 impl SonarFusion {
@@ -46,8 +55,15 @@ impl SonarFusion {
             vision_weight: 0.2,
             lidar_weight: 0.2,
             radar_weight: 0.1,
+
             emergency_threshold: 0.8,
             slow_threshold: 0.4,
+
+            // NEW: distance shaping (closer obstacles increase hazard)
+            distance_weight: 0.25,
+
+            // NEW: roundabout reflex blending (0.0–1.0)
+            roundabout_blend: 0.35,
         }
     }
 
@@ -72,6 +88,18 @@ impl SonarFusion {
         }
     }
 
+    /// NEW: distance‑aware hazard shaping
+    fn distance_hazard(&self, nearest: Option<f32>) -> f32 {
+        match nearest {
+            None => 0.0,
+            Some(d) => {
+                // Closer → higher hazard
+                let scaled = (1.0 / (1.0 + d)).clamp(0.0, 1.0);
+                scaled * self.distance_weight
+            }
+        }
+    }
+
     /// Fuse sonar + external sensors into a single hazard level and reflex.
     pub fn fuse(
         &self,
@@ -84,7 +112,8 @@ impl SonarFusion {
             sonar_level * self.sonar_weight +
             sensors.vision_obstacle_confidence * self.vision_weight +
             sensors.lidar_obstacle_confidence * self.lidar_weight +
-            sensors.radar_obstacle_confidence * self.radar_weight;
+            sensors.radar_obstacle_confidence * self.radar_weight +
+            self.distance_hazard(sensors.nearest_distance_m);
 
         let fused_hazard = fused_hazard.clamp(0.0, 1.0);
 
@@ -105,13 +134,26 @@ impl SonarFusion {
         let fused_confidence = (1.0 - variance).clamp(0.0, 1.0);
 
         // Reflex recommendation based on fused hazard
-        let recommended_reflex = if fused_hazard >= self.emergency_threshold {
+        let mut recommended_reflex = if fused_hazard >= self.emergency_threshold {
             ReflexAction::EmergencyStop
         } else if fused_hazard >= self.slow_threshold {
             ReflexAction::SlowDown
         } else {
             ReflexAction::None
         };
+
+        // NEW: roundabout reflex blending
+        // If hazard is moderate, blend toward steering away
+        if fused_hazard > 0.35 && fused_hazard < 0.65 {
+            let steer_strength = (fused_hazard * 90.0 * self.roundabout_blend)
+                .clamp(-90.0, 90.0);
+
+            if steer_strength.abs() > 10.0 {
+                recommended_reflex = ReflexAction::SteerAway {
+                    angle_deg: steer_strength,
+                };
+            }
+        }
 
         FusionState {
             fused_hazard_level: fused_hazard,

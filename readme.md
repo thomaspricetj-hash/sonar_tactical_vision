@@ -1,6 +1,8 @@
-📘 Close‑Range Sonar Perception System
+📘 Close‑Range Sonar Perception System (v2.0 MAX‑Tier)
 
-High‑precision near‑field sensing, reflex actions, hazard mapping, cross‑section analysis, fractal precision, and multi‑sensor fusion for robots and autonomous vehicles.
+High‑precision near‑field sensing, reflex actions, hazard mapping, fractal precision, cross‑section analysis, and multi‑sensor fusion for robots and autonomous vehicles.
+
+
 
 This project implements a full close‑range perception stack designed for robots, drones, and autonomous vehicles operating in tight spaces. It provides:
 
@@ -14,11 +16,11 @@ Multi‑layer heatmaps (predictive, temporal, gradient, flow, fractal‑enhanced
 
 
 
-Cross‑Section Mapping Engine (NEW)
+Cross‑Section Mapping Engine (v2.0)
 
 
 
-Fractal Precision Engine (NEW)
+Fractal Precision Engine (v2.0)
 
 
 
@@ -86,11 +88,11 @@ Deterministic fusion into a composite heatmap
 
 
 
-Noise‑robust and deterministic.
+Noise‑robust, stable, and deterministic.
 
 
 
-🧭 Cross‑Section Mapping Engine (NEW)
+🧭 Cross‑Section Mapping Engine (v2.0)
 
 Transforms fused heatmaps into high‑precision spatial, temporal, and hazard‑aware slices.
 
@@ -120,11 +122,15 @@ Average dx/dy flow
 
 
 
-Detects incoming hazards
+Incoming hazard detection
 
 
 
-Reveals lateral drift and environmental motion
+Lateral drift
+
+
+
+Environmental motion patterns
 
 
 
@@ -134,7 +140,15 @@ Frame‑to‑frame consistency
 
 
 
-Detects flicker, noise, sudden changes
+Flicker detection
+
+
+
+Noise rejection
+
+
+
+Sudden environmental change detection
 
 
 
@@ -186,7 +200,7 @@ fractal precision (NEW)
 
 
 
-This engine dramatically improves steering accuracy, hazard prediction, and reflex reliability.
+This dramatically improves steering accuracy, hazard prediction, and reflex reliability.
 
 
 
@@ -196,7 +210,7 @@ A multi‑scale complexity analyzer that increases close‑range accuracy by 22�
 
 
 
-It computes fractal complexity across:
+Computes fractal complexity across:
 
 
 
@@ -208,7 +222,7 @@ It computes fractal complexity across:
 
 
 
-5×5
+5×5 windows
 
 
 
@@ -236,7 +250,7 @@ hazard confidence
 
 
 
-This is now integrated directly into the fused precision score.
+Integrated directly into the fused precision score.
 
 
 
@@ -278,15 +292,15 @@ Each event includes:
 
 
 
-Severity scoring
+severity scoring
 
 
 
-Criticality detection
+criticality detection
 
 
 
-Optional steering direction
+optional steering direction
 
 
 
@@ -296,23 +310,23 @@ Persistent near‑field hazard memory:
 
 
 
-Reinforcement + decay
+reinforcement + decay
 
 
 
-Semantic label storage
+semantic label storage
 
 
 
-Reflex history
+reflex history
 
 
 
-Spatial hazard slicing (via cross‑section engine)
+spatial hazard slicing (via cross‑section engine)
 
 
 
-Stable context for reflex decisions
+Provides stable context for reflex decisions.
 
 
 
@@ -346,37 +360,103 @@ TemporalHazard
 
 
 
+NovelPattern (via Bloom + fractal drift)
+
+
+
+CurvatureExit (roundabout escape zone)
+
+
+
+LateralEscapeLane
+
+
+
+ForwardPressureHazard
+
+
+
+Semantic meaning enhances reflex accuracy and hazard prediction.
+
+
+
+🌐 Multi‑Sensor Fusion
+
+Combines:
+
+
+
+sonar hazard map
+
+
+
+vision obstacle confidence
+
+
+
+LiDAR obstacle confidence
+
+
+
+radar obstacle confidence
+
+
+
+nearest obstacle distance
+
+
+
+Outputs:
+
+
+
+fused hazard level
+
+
+
+fused confidence
+
+
+
+recommended reflex (stop / slow / steer away)
+
+
+
+Distance‑aware shaping + roundabout steering blending improves navigation and safety.
+
+
+
 ⚡ Reflex Pipeline (Fusion‑Aware)
 
 Blends:
 
 
 
-Sonar tactical events
+sonar tactical events
 
 
 
-Semantic meaning
+semantic meaning
 
 
 
-Cross‑section slices
+cross‑section slices
 
 
 
-Hazard slices
+hazard slices
 
 
 
-Multi‑sensor fusion hazard
+multi‑sensor fusion
 
 
 
-Fractal precision
+fractal precision
 
 
 
-Fused precision score
+fused precision score
 
 
 
@@ -404,83 +484,45 @@ None
 
 
 
-🌐 Multi‑Sensor Fusion
-
-Combines:
-
-
-
-Sonar hazard map
-
-
-
-Vision confidence
-
-
-
-LiDAR confidence
-
-
-
-Radar confidence
-
-
-
-Outputs:
-
-
-
-Fused hazard level
-
-
-
-Fused confidence
-
-
-
-Recommended reflex
-
-
-
 🔁 Runtime
 
 Deterministic tick loop:
 
 
 
-Time‑based routing
+time‑based routing
 
 
 
-Multi‑layer heatmap updates
+multi‑layer heatmap updates
 
 
 
-Cross‑section mapping
+cross‑section mapping
 
 
 
-Fractal precision computation
+fractal precision computation
 
 
 
-Hazard map reinforcement
+hazard map reinforcement
 
 
 
-Event generation
+event generation
 
 
 
-Semantic classification
+semantic classification
 
 
 
-Fusion integration
+fusion integration
 
 
 
-Reflex output
+reflex output
 
 
 
@@ -692,7 +734,7 @@ Close‑range perception is the hardest part of robotics:
 
 
 
-Cameras fail at <30cm
+Cameras fail at <30 cm
 
 
 
@@ -756,5 +798,5 @@ motion‑aware reflexes
 
 
 
-multi‑layer fusion precision
+multi‑sensor fusion precision
 

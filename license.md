@@ -846,3 +846,35 @@ The Commonwealth of Kentucky, United States
 
 By downloading, cloning, viewing, or executing the Software, Evaluator agrees to all terms in this Evaluation License.
 
+
+
+✅ Evaluation‑Only License Footer (MAX‑Tier, Upgrade‑Aware, No Loopholes)
+
+Evaluation License — No Commercial Rights Granted
+
+
+
+This software, including all sonar‑processing modules, multi‑layer heatmap engines, cross‑section mapping systems, fractal‑precision algorithms, hazard‑memory structures, semantic‑classification components, reflex pipelines, multi‑sensor fusion logic, cognitive‑dynamics subsystems, and all associated upgrades, enhancements, and derivative technologies (collectively, the “System”), is provided strictly for evaluation, testing, and non‑commercial research purposes only.
+
+
+
+No part of the System may be used, integrated, deployed, sublicensed, redistributed, or incorporated into any commercial product, service, robot, vehicle, embedded device, or autonomous system without prior written authorization and a valid commercial license issued by the owner.
+
+
+
+All intellectual property rights, including but not limited to algorithms, architectures, physics models, cognitive‑processing methods, fractal‑analysis engines, hazard‑mapping techniques, reflex‑control logic, and memory‑graph structures, remain exclusively owned by the licensor.
+
+No rights are transferred, implied, or granted under this evaluation license.
+
+
+
+Any attempt to bypass, modify, extend, replicate, or re‑implement the System or its components for commercial, industrial, or production use — including but not limited to:
+
+close‑range perception stacks, sonar‑based navigation systems, autonomous‑vehicle safety modules, robotics reflex engines, cognitive‑mapping systems, or multi‑sensor fusion frameworks — is strictly prohibited.
+
+
+
+Use of the System constitutes acceptance of these terms.
+
+For commercial licensing or full IP acquisition, contact the licensor.
+

@@ -6,7 +6,7 @@ use crate::reflex_pipeline::{ReflexPipeline, ReflexAction};
 use crate::hazard_map::HazardMap;
 use crate::heatmap::HeatLayer;
 
-/// Cross‑section mapping: multi‑axis precision + motion + temporal slices.
+/// Cross‑section mapping: multi‑axis precision + motion + temporal slices + roundabout bias.
 #[derive(Debug, Clone)]
 pub struct CrossSectionMap {
     pub entropy: f32,
@@ -28,6 +28,10 @@ pub struct CrossSectionMap {
     pub back_intensity: f32,
     pub left_intensity: f32,
     pub right_intensity: f32,
+
+    // Roundabout‑tier routing metrics
+    pub roundabout_score: f32,
+    pub exit_bias_deg: f32,
 }
 
 impl CrossSectionMap {
@@ -164,6 +168,40 @@ impl CrossSectionMap {
             * semantic_weight.clamp(0.0, 1.0)
             * temporal_stability;
 
+        // --- roundabout‑tier routing score ---
+        // High precision, high stability, low hazard, and strong lateral escape routes
+        let lateral_escape = (left_intensity + right_intensity) * 0.5;
+        let forward_pressure = front_intensity;
+        let backward_relief = back_intensity;
+
+        let roundabout_score = fused_precision
+            * temporal_stability
+            * (1.0 - hazard.clamp(0.0, 1.0))
+            * (0.5 + 0.5 * lateral_escape.clamp(0.0, 1.0))
+            * (0.5 + 0.5 * backward_relief.clamp(0.0, 1.0))
+            * (1.0 - forward_pressure.clamp(0.0, 1.0));
+
+        // --- exit bias angle (deg) ---
+        // Positive = steer right, negative = steer left, large magnitude = strong bias.
+        let lateral_diff = right_intensity - left_intensity;
+        let forward_diff = front_intensity - back_intensity;
+
+        let mut exit_bias_deg;
+
+        // Prefer lateral escape when front is hot
+        if forward_diff > 0.2 && hazard > 0.3 {
+            if lateral_diff > 0.05 {
+                exit_bias_deg = 45.0; // steer right
+            } else if lateral_diff < -0.05 {
+                exit_bias_deg = -45.0; // steer left
+            } else {
+                exit_bias_deg = 90.0; // hard turn (choose side later)
+            }
+        } else {
+            // Mild shaping based on lateral balance
+            exit_bias_deg = lateral_diff * 90.0;
+        }
+
         CrossSectionMap {
             entropy,
             volatility,
@@ -178,6 +216,8 @@ impl CrossSectionMap {
             back_intensity,
             left_intensity,
             right_intensity,
+            roundabout_score,
+            exit_bias_deg,
         }
     }
 }
@@ -239,7 +279,7 @@ impl<D: crate::device::SonarDevice> SonarRouter<D> {
         // --- 4. Semantic classification (expects HeatLayer) ---
         let semantic = self.semantic_layer.classify(&fused_layer, signature.clone());
 
-        // --- 5. Cross‑section mapping with motion + temporal + spatial slices ---
+        // --- 5. Cross‑section mapping with motion + temporal + spatial + roundabout slices ---
         let cross_sections = CrossSectionMap::from_layer(
             &fused_layer,
             &semantic,
@@ -250,12 +290,18 @@ impl<D: crate::device::SonarDevice> SonarRouter<D> {
         // update temporal memory
         self.last_fused = Some(fused_layer.cells.clone());
 
-        // --- 6. Reflex decision ---
-        let reflex = self.select_reflex(&events, &semantic, &cross_sections);
+        // --- 6. Reflex decision with MAX‑tier roundabout routing ---
+        let reflex = self.select_reflex_roundabout(&events, &semantic, &cross_sections);
 
         // --- 7. Hazard map update (expects HeatLayer) ---
         self.hazard_map.decay();
-        self.hazard_map.reinforce(&fused_layer, Some(&semantic), Some(&reflex));
+        self.hazard_map.reinforce(
+            &fused_layer,
+            Some(&semantic),
+            Some(&reflex),
+            cross_sections.fused_precision,
+            cross_sections.roundabout_score,
+        );
 
         SonarRouterOutput {
             events,
@@ -266,7 +312,13 @@ impl<D: crate::device::SonarDevice> SonarRouter<D> {
         }
     }
 
-    fn select_reflex(
+    /// MAX‑tier roundabout reflex selection:
+    /// - critical events override everything
+    /// - low precision / low stability → slow down
+    /// - strong motion drift → steer away
+    /// - front hazard + high front intensity → brake
+    /// - roundabout score + exit bias → steer into safest lane
+    fn select_reflex_roundabout(
         &self,
         events: &[TacticalEvent],
         semantic: &SemanticResult,
@@ -306,6 +358,20 @@ impl<D: crate::device::SonarDevice> SonarRouter<D> {
             return ReflexAction::SlowDown;
         }
 
+        // MAX‑tier roundabout routing:
+        // If roundabout score is high, prefer steering into the safest lateral/escape lane.
+        if cross.roundabout_score > 0.5 {
+            let angle = cross.exit_bias_deg;
+
+            // If exit bias is strong, commit to a steering action.
+            if angle.abs() >= 15.0 {
+                return ReflexAction::SteerAway {
+                    angle_deg: angle.clamp(-90.0, 90.0),
+                };
+            }
+        }
+
+        // Fall back to standard reflex pipeline with semantic context
         if let Some(event) = best {
             return self.reflex_pipeline.handle(event, Some(semantic));
         }
@@ -317,5 +383,6 @@ impl<D: crate::device::SonarDevice> SonarRouter<D> {
         &self.hazard_map
     }
 }
+
 
 

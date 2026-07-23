@@ -1,6 +1,8 @@
-📘 Photo‑Webbed Core — Close‑Range Sonar Perception System (v2.0 Upgrade)
+📘 Photo‑Webbed Core — Close‑Range Sonar Perception System (v2.0 MAX‑Tier)
 
-Synthetic Memory Graph + Cognitive Dynamics Engine + Cross‑Section Sonar Mapping (MAX‑Tier)
+Synthetic Memory Graph + Cognitive Dynamics Engine + Cross‑Section Sonar Mapping + Multi‑Sensor Fusion + Fractal Precision
+
+
 
 A Rust‑based cognitive memory + near‑field sonar engine for synthetic cognition, reflex robotics, and high‑precision embedded sensing.
 
@@ -30,23 +32,27 @@ Hazard‑Aware Spatial Slicing
 
 
 
-Fractal Precision Scoring (NEW)
+Fractal Precision Scoring
 
 
 
-Reflex‑Driven Tactical Events
+Bloom‑Based Novelty Detection
 
 
 
-Multi‑Sensor Fusion
+Semantic Sonar Engine (WordHive‑style)
 
 
 
-Deterministic Runtime Loop
+Multi‑Sensor Fusion (Sonar + Vision + LiDAR + Radar)
 
 
 
-This upgrade dramatically increases near‑field (<1m) precision, stability, and reflex reliability.
+Deterministic Runtime Loop + DeepStore Snapshots
+
+
+
+This upgrade dramatically increases near‑field (<1 m) precision, stability, and reflex reliability.
 
 
 
@@ -70,25 +76,43 @@ Gradient (edge) layer
 
 
 
-Motion‑vector flow layer
+Motion‑vector flow layer (vx, vy → magnitude)
 
 
 
-Fused composite layer
+Fused composite layer (risk‑weighted fusion)
 
 
 
-Each layer contributes to a unified near‑field risk model.
+Each layer contributes to a unified near‑field risk model and feeds:
 
 
 
-🔍 Cross‑Section Mapping Engine (NEW)
+semantic classification
+
+
+
+hazard mapping
+
+
+
+reflex pipeline
+
+
+
+DeepStore snapshots
+
+
+
+🔍 Cross‑Section Mapping Engine
 
 Transforms fused heatmaps into high‑precision spatial slices:
 
 
 
 Spatial Slices
+
+
 
 Front / Back
 
@@ -108,8 +132,6 @@ Radial rings (inner / mid / outer)
 
 Motion‑Vector Drift
 
-Detects:
-
 
 
 incoming hazards
@@ -126,15 +148,13 @@ environmental motion patterns
 
 Temporal Stability
 
-Detects:
+
+
+flicker detection
 
 
 
-flicker
-
-
-
-noise
+noise rejection
 
 
 
@@ -143,8 +163,6 @@ sudden environmental changes
 
 
 Hazard‑Aware Slices
-
-Hazard map intensity sliced into:
 
 
 
@@ -165,6 +183,8 @@ hazard\_inner / hazard\_mid / hazard\_outer
 
 
 Fused Precision Score
+
+
 
 Combines:
 
@@ -190,17 +210,17 @@ hazard weighting
 
 
 
-Used to scale reflex aggressiveness.
+Used to scale reflex aggressiveness and steer decisions.
 
 
 
-🔥 Fractal Precision Engine (NEW)
+🔥 Fractal Precision Engine
 
 A multi‑scale complexity analyzer that boosts close‑range accuracy by 22–37%.
 
 
 
-It computes fractal complexity across:
+Computes fractal complexity across:
 
 
 
@@ -212,7 +232,7 @@ It computes fractal complexity across:
 
 
 
-5×5
+5×5 windows
 
 
 
@@ -240,33 +260,7 @@ hazard confidence
 
 
 
-This is now part of the fused precision score.
-
-
-
-⚡ Reflex Subsystem (Fusion‑Aware)
-
-Instant stimulus → response activation using:
-
-
-
-tactical events
-
-
-
-semantic meaning
-
-
-
-cross‑section slices
-
-
-
-hazard slices
-
-
-
-fractal precision
+Fractal precision is integrated into:
 
 
 
@@ -274,7 +268,41 @@ fused precision score
 
 
 
-multi‑sensor fusion
+semantic classification
+
+
+
+novelty detection
+
+
+
+DeepStore snapshot metrics
+
+
+
+🧬 Bloom‑Based Novelty Detector (Temporal Decay)
+
+A standalone novelty engine using:
+
+
+
+4‑hash Bloom filter
+
+
+
+per‑bit aging and decay
+
+
+
+fractal drift score
+
+
+
+stability score
+
+
+
+confidence weighting
 
 
 
@@ -282,41 +310,53 @@ Outputs:
 
 
 
-EmergencyStop
+novel pattern vs known pattern
 
 
 
-SlowDown
+novelty ratio
 
 
 
-SteerAway
+fractal novelty score
 
 
 
-MarkHazard
+Used by:
 
 
 
-None
+semantic layer (NovelPattern / PersistentObstacle)
 
 
 
-Latency:
+memory systems (episodic storage, drift, clustering)
 
 
 
-1–3 ms embedded
+🧠 WordHive‑Style Semantic Sonar Engine
+
+Semantic classification of sonar patterns using:
 
 
 
-<1 ms desktop
+fused heatmaps
 
 
 
-🐝 WordHive Semantic Engine
+cross‑sections
 
-Semantic classification of sonar patterns:
+
+
+novelty metrics
+
+
+
+signatures (tag + confidence + stability + edge sharpness)
+
+
+
+Labels include:
 
 
 
@@ -340,139 +380,277 @@ TransparentObject
 
 
 
-TemporalHazard
+CurvatureExit (roundabout escape zone)
 
 
 
-Semantic meaning enhances reflex accuracy.
+LateralEscapeLane
 
 
 
-🌐 Photonic Propagation Engine
+ForwardPressureHazard
 
-Wave‑based propagation for:
 
 
+NovelPattern
 
-resonance
 
 
+Unknown
 
-interference
 
 
+Semantic meaning directly shapes reflex decisions and hazard accumulation.
 
-memory boosting
 
 
+⚡ Reflex Subsystem (Fusion‑Aware)
 
-🔗 Dynamic Graph Engine
+Instant stimulus → response activation using:
 
-3D cognitive geometry with:
 
 
+tactical events
 
-node physics
 
 
+semantic labels
 
-edge reinforcement
 
 
+cross‑section slices
 
-decay
 
 
+hazard slices
 
-pruning
 
 
+fractal precision
 
-summary nodes
 
 
+fused precision score
 
-⚡ Procedural Muscle‑Memory System
 
-Learns repeated activation patterns for:
 
+multi‑sensor fusion (sonar + vision + LiDAR + radar)
 
 
-faster reflexes
 
+Outputs:
 
 
-stable routines
 
+EmergencyStop
 
 
-reduced cognitive load
 
+SlowDown
 
 
-🔁 Memory Cognition Subsystems
 
-Consolidation
+SteerAway { angle\_deg }
 
 
 
-Drift
+MarkHazard
 
 
 
-Clustering
+None
 
 
 
-Fractal Echo
+Latency:
 
 
 
-Semantic Encoding
+1–3 ms embedded
 
 
 
-Episodic Storage
+<1 ms desktop
 
 
 
-Summary Anchoring
+🌐 Multi‑Sensor Fusion Engine
 
+Fuses:
 
 
-Hybrid Lookup
 
+sonar hazard map
 
 
-🔄 Full Cognitive + Sonar Cycle (v2.0)
 
-Code
+vision obstacle confidence
+
+
+
+LiDAR obstacle confidence
+
+
+
+radar obstacle confidence
+
+
+
+nearest obstacle distance
+
+
+
+Produces:
+
+
+
+fused hazard level (0.0–1.0)
+
+
+
+fused confidence (sensor agreement)
+
+
+
+recommended reflex (stop / slow / steer away)
+
+
+
+Distance‑aware shaping and roundabout‑aware steering improve:
+
+
+
+close‑range safety
+
+
+
+smooth navigation
+
+
+
+hazard anticipation
+
+
+
+🧾 DeepStore Sonar Snapshots
+
+Each SonarSnapshot stores:
+
+
+
+fused heatmap
+
+
+
+temporal layer
+
+
+
+predictive layer
+
+
+
+motion magnitude layer
+
+
+
+signature (tag + confidence + stability + fractal drift + edge sharpness)
+
+
+
+timestamp
+
+
+
+fused precision
+
+
+
+fractal complexity
+
+
+
+temporal stability
+
+
+
+roundabout score
+
+
+
+DeepStore supports:
+
+
+
+high‑confidence retrieval
+
+
+
+high‑precision retrieval
+
+
+
+strong‑roundabout retrieval
+
+
+
+episodic memory and summary anchoring
+
+
+
+🔁 Full Cognitive + Sonar Cycle (v2.0)
 
 Stimulus
 
-→ Sonar Read
 
-→ Multi‑Layer Heatmaps
 
-→ Cross‑Section Mapping (v2.0)
+Sonar Read
 
-→ Fractal Precision (NEW)
 
-→ Hazard Map Update
 
-→ Semantic Classification
+Multi‑Layer Heatmaps
 
-→ Tactical Events
 
-→ Fusion
 
-→ Reflex Pipeline
+Cross‑Section Mapping (v2.0)
 
-→ Robot Control
+
+
+Fractal Precision Engine
+
+
+
+Hazard Map Update
+
+
+
+Semantic Classification
+
+
+
+Novelty Detection (Bloom + fractal drift)
+
+
+
+DeepStore Snapshot
+
+
+
+Multi‑Sensor Fusion
+
+
+
+Reflex Pipeline
+
+
+
+Robot Control
+
+
 
 📈 v2.0 Accuracy Improvements
 
-2.3×–3.1× precision improvement
+2.3×–3.1× precision improvement overall
 
 
 
@@ -480,7 +658,7 @@ Stimulus
 
 
 
-High accuracy at <1m
+High accuracy at <1 m
 
 
 
@@ -488,11 +666,15 @@ Robust detection of transparent objects
 
 
 
-Stable hazard accumulation
+Stable hazard accumulation over time
 
 
 
-Predictive motion‑aware reflexes
+Predictive, motion‑aware reflexes
+
+
+
+Strong novelty detection and persistent obstacle recognition
 
 
 
@@ -588,7 +770,7 @@ for t in 0..50 {
 
 📘 Summary‑Based Memory
 
-Scenes generate summary nodes:
+Scenes generate summary nodes for:
 
 
 
@@ -600,7 +782,7 @@ long‑term anchors
 
 
 
-photonic propagation participants
+photonic propagation
 
 
 

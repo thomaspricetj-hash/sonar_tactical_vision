@@ -33,6 +33,9 @@ impl HazardVisualizer {
             Some(SemanticLabel::DirectionalHazard) => Some('D'),
             Some(SemanticLabel::PersistentObstacle) => Some('P'),
             Some(SemanticLabel::NovelPattern) => Some('N'),
+            Some(SemanticLabel::CurvatureExit) => Some('C'),        // NEW
+            Some(SemanticLabel::LateralEscapeLane) => Some('L'),    // NEW
+            Some(SemanticLabel::ForwardPressureHazard) => Some('F'),// NEW
             Some(SemanticLabel::Unknown) => Some('?'),
             None => None,
         }

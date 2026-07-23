@@ -55,6 +55,155 @@ pub struct FullCrossSectionSlices {
     pub fused_precision: f32,
 }
 
+/// Roundabout multi‑layer index: compact routing metrics derived from cross‑sections.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RoundaboutIndex {
+    pub roundabout_score: f32,
+    pub exit_bias_deg: f32,
+    pub lateral_escape_score: f32,
+    pub forward_pressure_score: f32,
+    pub stability_score: f32,
+    pub hazard_pressure_score: f32,
+}
+
+/// Roundabout graph node: represents a spatial/hazard region.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RoundaboutGraphNode {
+    pub id: usize,
+    pub label: String,
+    pub weight: f32,
+}
+
+/// Roundabout graph: multi‑layer connectivity between regions (front/back/left/right + rings).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RoundaboutGraph {
+    pub nodes: Vec<RoundaboutGraphNode>,
+    pub edges: Vec<(usize, usize, f32)>, // (from, to, weight)
+}
+
+impl FullCrossSectionSlices {
+    /// Build a roundabout index from cross‑section slices.
+    pub fn to_roundabout_index(&self) -> RoundaboutIndex {
+        // Lateral escape: low hazard + low intensity on left/right
+        let lateral_intensity = (self.left_intensity + self.right_intensity) * 0.5;
+        let lateral_hazard = (self.hazard_left + self.hazard_right) * 0.5;
+        let lateral_escape_score = (1.0 - lateral_intensity.clamp(0.0, 1.0))
+            * (1.0 - lateral_hazard.clamp(0.0, 1.0));
+
+        // Forward pressure: high front intensity + high front hazard
+        let forward_pressure_score = (self.front_intensity.clamp(0.0, 1.0)
+            * (0.5 + self.hazard_front.clamp(0.0, 1.0) * 0.5))
+            .clamp(0.0, 1.0);
+
+        // Hazard pressure: outer ring + front hazard
+        let hazard_pressure_score = ((self.hazard_outer + self.hazard_front) * 0.5).clamp(0.0, 1.0);
+
+        // Stability: temporal + fractal precision
+        let stability_score = (self.temporal_stability * (0.5 + self.fractal_precision * 0.5))
+            .clamp(0.0, 1.0);
+
+        // Roundabout score: prefer high stability, low hazard, strong lateral escape, low forward pressure
+        let roundabout_score = stability_score
+            * (1.0 - hazard_pressure_score)
+            * (0.5 + lateral_escape_score * 0.5)
+            * (1.0 - forward_pressure_score)
+            * (0.5 + self.fused_precision * 0.5);
+
+        // Exit bias: steer toward safer side
+        let lateral_diff = self.right_intensity - self.left_intensity;
+        let forward_diff = self.front_intensity - self.back_intensity;
+
+        let mut exit_bias_deg;
+
+        if forward_diff > 0.2 && self.hazard_front > 0.3 {
+            // front is hot → prefer lateral escape
+            if lateral_diff > 0.05 {
+                exit_bias_deg = 45.0; // steer right
+            } else if lateral_diff < -0.05 {
+                exit_bias_deg = -45.0; // steer left
+            } else {
+                exit_bias_deg = 90.0; // hard turn, choose side later
+            }
+        } else {
+            exit_bias_deg = lateral_diff * 90.0;
+        }
+
+        RoundaboutIndex {
+            roundabout_score: roundabout_score.clamp(0.0, 1.0),
+            exit_bias_deg: exit_bias_deg.clamp(-90.0, 90.0),
+            lateral_escape_score: lateral_escape_score.clamp(0.0, 1.0),
+            forward_pressure_score: forward_pressure_score.clamp(0.0, 1.0),
+            stability_score,
+            hazard_pressure_score,
+        }
+    }
+
+    /// Build a roundabout graph from cross‑section slices.
+    pub fn to_roundabout_graph(&self) -> RoundaboutGraph {
+        let mut nodes = Vec::new();
+        let mut edges = Vec::new();
+
+        // Nodes: front/back/left/right + rings
+        nodes.push(RoundaboutGraphNode {
+            id: 0,
+            label: "front".to_string(),
+            weight: self.front_intensity,
+        });
+        nodes.push(RoundaboutGraphNode {
+            id: 1,
+            label: "back".to_string(),
+            weight: self.back_intensity,
+        });
+        nodes.push(RoundaboutGraphNode {
+            id: 2,
+            label: "left".to_string(),
+            weight: self.left_intensity,
+        });
+        nodes.push(RoundaboutGraphNode {
+            id: 3,
+            label: "right".to_string(),
+            weight: self.right_intensity,
+        });
+        nodes.push(RoundaboutGraphNode {
+            id: 4,
+            label: "inner_ring".to_string(),
+            weight: self.inner_ring,
+        });
+        nodes.push(RoundaboutGraphNode {
+            id: 5,
+            label: "mid_ring".to_string(),
+            weight: self.mid_ring,
+        });
+        nodes.push(RoundaboutGraphNode {
+            id: 6,
+            label: "outer_ring".to_string(),
+            weight: self.outer_ring,
+        });
+
+        // Edges: basic roundabout connectivity
+        // front ↔ left/right
+        edges.push((0, 2, 1.0 - self.hazard_left.clamp(0.0, 1.0)));
+        edges.push((0, 3, 1.0 - self.hazard_right.clamp(0.0, 1.0)));
+
+        // left ↔ inner/mid
+        edges.push((2, 4, 1.0 - self.hazard_inner.clamp(0.0, 1.0)));
+        edges.push((2, 5, 1.0 - self.hazard_mid.clamp(0.0, 1.0)));
+
+        // right ↔ inner/mid
+        edges.push((3, 4, 1.0 - self.hazard_inner.clamp(0.0, 1.0)));
+        edges.push((3, 5, 1.0 - self.hazard_mid.clamp(0.0, 1.0)));
+
+        // front ↔ outer
+        edges.push((0, 6, 1.0 - self.hazard_outer.clamp(0.0, 1.0)));
+
+        // back ↔ inner/mid
+        edges.push((1, 4, 1.0 - self.hazard_inner.clamp(0.0, 1.0)));
+        edges.push((1, 5, 1.0 - self.hazard_mid.clamp(0.0, 1.0)));
+
+        RoundaboutGraph { nodes, edges }
+    }
+}
+
 /// A single heatmap layer represented as a dot‑matrix grid.
 /// Each cell stores a normalized risk value (0.0–1.0).
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -702,6 +851,26 @@ impl MultiLayerHeatmap {
     ) -> FullCrossSectionSlices {
         let fused = self.fuse();
         fused.compute_full_cross_sections(Some(&self.motion_layer), prev_fused, hazard)
+    }
+
+    /// Compute roundabout index from multi‑layer fused heatmap.
+    pub fn roundabout_index(
+        &self,
+        prev_fused: Option<&[f32]>,
+        hazard: Option<&HazardMap>,
+    ) -> RoundaboutIndex {
+        let slices = self.full_cross_sections(prev_fused, hazard);
+        slices.to_roundabout_index()
+    }
+
+    /// Compute roundabout graph from multi‑layer fused heatmap.
+    pub fn roundabout_graph(
+        &self,
+        prev_fused: Option<&[f32]>,
+        hazard: Option<&HazardMap>,
+    ) -> RoundaboutGraph {
+        let slices = self.full_cross_sections(prev_fused, hazard);
+        slices.to_roundabout_graph()
     }
 }
 

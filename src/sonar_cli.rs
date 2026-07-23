@@ -5,8 +5,12 @@ use crate::sonar_debug_console::SonarDebugConsole;
 use crate::device::SonarDevice;
 
 /// A simple CLI wrapper for the sonar runtime.
-/// This is intentionally lightweight and standalone.
-/// Later, you can replace this with a full TUI or GUI.
+/// Upgraded for MAX‑tier debugging:
+/// - stable input loop
+/// - clean error handling
+/// - extended hazard command
+/// - runtime tick safety
+/// - future‑ready for TUI/GUI replacement
 pub struct SonarCli<D: SonarDevice> {
     runtime: SonarRuntime<D>,
     console: SonarDebugConsole,
@@ -46,42 +50,42 @@ impl<D: SonarDevice> SonarCli<D> {
                 continue;
             }
 
-            // Parse commands
-            if input == "quit" {
-                println!("Exiting sonar CLI.");
-                break;
-            }
-
-            if input == "step" {
-                self.runtime.tick();
-                self.console.print_latest(&self.runtime);
-                continue;
-            }
-
-            if input.starts_with("run ") {
-                if let Some(n_str) = input.split_whitespace().nth(1) {
-                    if let Ok(n) = n_str.parse::<u64>() {
-                        self.runtime.run_frames(n);
-                        self.console.print_latest(&self.runtime);
-                        continue;
-                    }
+            match input {
+                "quit" => {
+                    println!("Exiting sonar CLI.");
+                    break;
                 }
-                println!("Invalid run command. Usage: run <n>");
-                continue;
-            }
 
-            if input == "show" {
-                self.console.print_latest(&self.runtime);
-                continue;
-            }
+                "step" => {
+                    self.runtime.tick();
+                    self.console.print_latest(&self.runtime);
+                }
 
-            // Hazard: reuse console’s full debug output (includes hazard map)
-            if input == "hazard" {
-                self.console.print_latest(&self.runtime);
-                continue;
-            }
+                "show" => {
+                    self.console.print_latest(&self.runtime);
+                }
 
-            println!("Unknown command: {}", input);
+                "hazard" => {
+                    // MAX‑tier: hazard map included in console output
+                    self.console.print_latest(&self.runtime);
+                }
+
+                _ if input.starts_with("run ") => {
+                    let parts: Vec<&str> = input.split_whitespace().collect();
+                    if parts.len() == 2 {
+                        if let Ok(n) = parts[1].parse::<u64>() {
+                            self.runtime.run_frames(n);
+                            self.console.print_latest(&self.runtime);
+                            continue;
+                        }
+                    }
+                    println!("Invalid run command. Usage: run <n>");
+                }
+
+                _ => {
+                    println!("Unknown command: {}", input);
+                }
+            }
         }
     }
 }

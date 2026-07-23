@@ -4,7 +4,12 @@ use crate::hazard_visualizer::HazardVisualizer;
 use crate::device::SonarDevice;
 
 /// A lightweight debugging console for the sonar system.
-/// Prints events, semantic meaning, reflex actions, and hazard maps.
+/// Upgraded for MAX‑tier debugging:
+/// - cleaner formatting
+/// - multi‑layer hazard metadata
+/// - cross‑section summary
+/// - precision + roundabout routing visibility
+/// - stable output ordering
 pub struct SonarDebugConsole {
     visualizer: HazardVisualizer,
     print_events: bool,
@@ -12,6 +17,7 @@ pub struct SonarDebugConsole {
     print_semantic: bool,
     print_reflex: bool,
     print_hazard_map: bool,
+    print_cross_sections: bool,     // NEW
 }
 
 impl SonarDebugConsole {
@@ -23,27 +29,27 @@ impl SonarDebugConsole {
             print_semantic: true,
             print_reflex: true,
             print_hazard_map: true,
+            print_cross_sections: true,
         }
     }
 
     pub fn disable_events(&mut self) {
         self.print_events = false;
     }
-
     pub fn disable_signature(&mut self) {
         self.print_signature = false;
     }
-
     pub fn disable_semantic(&mut self) {
         self.print_semantic = false;
     }
-
     pub fn disable_reflex(&mut self) {
         self.print_reflex = false;
     }
-
     pub fn disable_hazard_map(&mut self) {
         self.print_hazard_map = false;
+    }
+    pub fn disable_cross_sections(&mut self) {
+        self.print_cross_sections = false;
     }
 
     /// Print the latest sonar output from the runtime.
@@ -103,6 +109,25 @@ impl SonarDebugConsole {
         if self.print_reflex {
             println!("Reflex:");
             println!("  {:?}", output.reflex);
+            println!("---------------------------------------------------");
+        }
+
+        // --- Cross‑Sections (NEW) ---
+        if self.print_cross_sections {
+            let cs = &output.cross_sections;
+            println!("Cross‑Sections:");
+            println!("  Entropy:            {:.3}", cs.entropy);
+            println!("  Volatility:         {:.3}", cs.volatility);
+            println!("  Drift:              {:.3}", cs.drift);
+            println!("  Hazard:             {:.3}", cs.hazard);
+            println!("  Semantic Weight:    {:.3}", cs.semantic_weight);
+            println!("  Fused Precision:    {:.3}", cs.fused_precision);
+            println!("  Motion Drift:       dx={:.3}, dy={:.3}", cs.motion_dx, cs.motion_dy);
+            println!("  Temporal Stability: {:.3}", cs.temporal_stability);
+            println!("  Front/Back:         {:.3} / {:.3}", cs.front_intensity, cs.back_intensity);
+            println!("  Left/Right:         {:.3} / {:.3}", cs.left_intensity, cs.right_intensity);
+            println!("  Roundabout Score:   {:.3}", cs.roundabout_score);
+            println!("  Exit Bias (deg):    {:.1}", cs.exit_bias_deg);
             println!("---------------------------------------------------");
         }
 
